@@ -21,13 +21,13 @@ A Flask-based REST API for managing events and RSVPs with different access level
 
    **Windows:**
    ```bash
-   python -m venv venv
+   python -m venv .venv
    venv\Scripts\activate
    ```
 
    **Linux/Mac:**
    ```bash
-   python -m venv venv
+   python -m venv .venv
    source venv/bin/activate
    ```
 
