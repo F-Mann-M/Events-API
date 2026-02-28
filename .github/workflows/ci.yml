@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+      branches: [ main ]
+  pull_request:
+      branches : [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: setup Docker image
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build docker image
+        run: |
+          docker build -t event-api: latest .
+
+      - name: Run Container
+        run: |
+          docker run -d -p 5000:5000 --name event-api-test event-api: latest
+            for i in {1..20}; do
+              if curl -fsS http://localhost:5000/api/helth; then
+                echo "Health check OK"
+                exit 0
+              fi
+              echo "Waiting for API... ($i)"
+              sleep 1
+            done
+            echo "Health check failed"
+            docker logs event-api-test || true
+            exit 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: |
+          pip install -r requirements-test.txt
+
+      - name: start tests agains container
+        run: |
+          pytest -v
+          
