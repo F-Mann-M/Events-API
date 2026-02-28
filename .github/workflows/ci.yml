@@ -19,11 +19,11 @@ jobs:
 
       - name: Build docker image
         run: |
-          docker build -t event-api: latest .
+          docker build -t event-api:latest .
 
       - name: Run Container
         run: |
-          docker run -d -p 5000:5000 --name event-api-test event-api: latest
+          docker run -d -p 5000:5000 --name event-api-test event-api:latest
             for i in {1..20}; do
               if curl -fsS http://localhost:5000/api/helth; then
                 echo "Health check OK"
