@@ -45,7 +45,7 @@ jobs:
         run: |
           pip install -r requirements-test.txt
 
-      - name: start tests agains container
+      - name: start tests against container
         run: |
           pytest -v
           
