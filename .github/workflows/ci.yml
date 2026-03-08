@@ -9,7 +9,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
+    environment: production
     steps:
       - name: checkout code
         uses: actions/checkout@v4
@@ -23,7 +23,7 @@ jobs:
 
       - name: Run Container
         run: |
-          docker run -d -p 5000:5000 --name event-api-test event-api:latest
+          docker run -d -p 5000:5000 --name event-api-container event-api:latest
             for i in {1..20}; do
               if curl -fsS http://localhost:5000/api/health; then
                 echo "Health check OK"
@@ -33,7 +33,7 @@ jobs:
               sleep 1
             done
             echo "Health check failed"
-            docker logs event-api-test || true
+            docker logs event-api-container || true
             exit 1
 
       - name: Setup Python
@@ -52,6 +52,24 @@ jobs:
       - name: Clean up Container
         if: always()
         run: |
-          docker stop event-api-test || true
-          docker rm event-api-test || true
+          docker stop event-api-container || true
+          docker rm event-api-container || true
           
+      - name: Login to docker
+        uses: docker login-action@v3
+        with:
+          username: ${{secret.DOCKERHUB_USERNAME}}
+          password: ${{secret.DOCKERHUB_TOKEN}}
+
+      - name: Tag Docker image
+        run: |
+          docker tag event-api:latest ${{secrets.DOCKERHUB_USERNAME}}/event:latest
+
+      - name: Push to docker hub
+        run: |
+          docker push ${{secrets.DOCKERHUB_USERNAME}}/event:latest
+
+      - name: Trigger Render redeploy
+        run: |
+          curl -X POST ${{secrets.RENDER_DEPLOY_HOOK}}
+
